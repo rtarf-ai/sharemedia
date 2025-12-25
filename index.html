@@ -297,7 +297,7 @@
           const jsonStr = document.getElementById('json-code').value;
           if(!jsonStr) throw new Error("กรุณาใส่ JSON Code");
           flexContent = JSON.parse(jsonStr);
-          logData.title = "Custom JSON";
+          logData.title = "ข้อความใหม่สุดๆ";
         }
 
         const result = await liff.shareTargetPicker([
