@@ -348,31 +348,39 @@
     function getBubbleImage(title, url) {
       const shareUrl = createShareLink('image', title, url);
       return {
-        "type": "bubble",
-        "hero": {
-          "type": "image", "url": url, "size": "full", "aspectRatio": "20:13", "aspectMode": "cover",
-          "action": { "type": "uri", "uri": url }
-        },
-        "body": {
-          "type": "box", "layout": "vertical",
-          "contents": [
-            { "type": "text", "text": title || "รูปภาพ", "weight": "bold", "size": "xl", "wrap": true }
-          ]
-        },
-        "footer": {
-          "type": "box", "layout": "vertical", "spacing": "sm",
-          "contents": [
-            {
-               "type": "button", "style": "primary", "color": "#06C755", "height": "sm",
-               "action": { "type": "uri", "label": "แชร์ให้เพื่อน / กลุ่มอื่น", "uri": shareUrl }
-            },
-            {
-               "type": "button", "style": "secondary", "height": "sm",
-               "action": { "type": "uri", "label": "เปิดดูรูปภาพเต็ม", "uri": url }
-            }
-          ]
+  "type": "bubble",
+  "size": "giga",
+  "body": {
+    "type": "box",
+    "layout": "vertical",
+    "contents": [
+      {
+        "type": "image",
+        "url": url,
+        "size": "full",
+        "aspectMode": "cover",
+        "gravity": "center"
+      },
+      {
+        "type": "image",
+        "url": "https://raw.githubusercontent.com/rtarf-ai/sharemedia/refs/heads/main/Sharing2.png",
+        "aspectMode": "cover",
+        "offsetTop": "92%",
+        "offsetStart": "92%",
+        "position": "absolute",
+        "size": "30px",
+        "action": {
+          "type": "uri",
+          "label": "แชร์ต่อ",
+          "uri": shareUrl
         }
-      };
+      }
+    ],
+    "paddingAll": "0px",
+    "maxWidth": "1400px"
+  }
+}
+;
     }
 
     function getBubbleVideo(title, thumb, url) {
