@@ -283,30 +283,21 @@
     // 6. Flex Message Templates (สวยงาม Modern)
     function getBubbleImage(title, url) {
       return {
-        "type": "bubble",
-        "hero": {
-          "type": "image",
-          "url": url,
-          "size": "full",
-          "aspectRatio": "20:13",
-          "aspectMode": "cover",
-          "action": { "type": "uri", "uri": url }
-        },
-        "body": {
-          "type": "box",
-          "layout": "vertical",
-          "contents": [
-            { "type": "text", "text": title || "รูปภาพ", "weight": "bold", "size": "xl", "wrap": true }
-          ]
-        },
-        "footer": {
-          "type": "box",
-          "layout": "vertical",
-          "contents": [
-            { "type": "button", "style": "secondary", "action": { "type": "uri", "label": "เปิดดูรูปภาพ", "uri": url } }
-          ]
-        }
-      };
+  "type": "bubble",
+  "size": "giga",
+  "hero": {
+    "type": "image",
+    "url": url,
+    "gravity": "center",
+    "size": "full",
+    "aspectMode": "cover",
+    "action": {
+      "type": "uri",
+      "label": "ดูภาพ",
+      "uri": url
+    }
+  }
+};
     }
 
     function getBubbleVideo(title, thumb, url) {
