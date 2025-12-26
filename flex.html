@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>Flex Share Pro External</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <style>
+    body { font-family: 'Prompt', sans-serif; background-color: #f3f4f6; }
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+    .btn-gradient {
+      background: linear-gradient(135deg, #06c755 0%, #00b900 100%);
+      color: white;
+    }
+    .input-field:focus {
+      border-color: #06c755;
+      box-shadow: 0 0 0 4px rgba(6, 199, 85, 0.1);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-gray-100 to-green-50">
+
+  <div class="glass-panel w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden relative">
+    <div class="bg-[#06c755] p-6 text-white text-center relative overflow-hidden">
+      <div class="relative z-10">
+        <h1 class="text-2xl font-bold tracking-wide">Flex Share System</h1>
+        <p class="text-xs opacity-90 mt-1">ระบบส่งต่อข้อมูล (External Host)</p>
+      </div>
+    </div>
+
+    <div class="p-6 space-y-6">
+      
+      <div>
+        <label class="block text-gray-600 text-xs font-bold mb-2 uppercase tracking-wider">ประเภทสื่อ</label>
+        <div class="grid grid-cols-3 gap-3 bg-gray-100 p-1.5 rounded-xl">
+          <button onclick="setType('image')" id="btn-image" class="type-btn py-2.5 text-sm rounded-lg font-bold transition-all shadow-sm bg-white text-[#06c755]">รูปภาพ</button>
+          <button onclick="setType('video')" id="btn-video" class="type-btn py-2.5 text-sm rounded-lg font-bold transition-all text-gray-400 hover:text-gray-600">วีดีโอ</button>
+          <button onclick="setType('json')" id="btn-json" class="type-btn py-2.5 text-sm rounded-lg font-bold transition-all text-gray-400 hover:text-gray-600">JSON</button>
+        </div>
+      </div>
+
+      <div id="form-container" class="space-y-4">
+        <div id="title-group">
+          <label class="block text-gray-700 text-sm font-bold mb-1">หัวข้อ (Title) <span class="text-red-500">*</span></label>
+          <input type="text" id="msgTitle" class="w-full px-4 py-3 rounded-xl border border-gray-200 input-field outline-none" placeholder="ใส่หัวข้อเรื่อง...">
+        </div>
+
+        <div id="media-inputs" class="space-y-4">
+          <div>
+            <label class="block text-gray-700 text-sm font-bold mb-1" id="media-label">ลิงก์รูปภาพ</label>
+            <input type="url" id="mediaUrl" class="w-full px-4 py-3 rounded-xl border border-gray-200 input-field outline-none" placeholder="https://...">
+          </div>
+          <div id="preview-field" class="hidden">
+            <label class="block text-gray-700 text-sm font-bold mb-1">ลิงก์ภาพปกวีดีโอ</label>
+            <input type="url" id="previewUrl" class="w-full px-4 py-3 rounded-xl border border-gray-200 input-field outline-none" placeholder="https://...">
+          </div>
+          <div>
+            <label class="block text-gray-700 text-sm font-bold mb-1">สัดส่วน</label>
+            <select id="aspectRatio" class="w-full px-4 py-3 rounded-xl border border-gray-200 input-field outline-none bg-white">
+              <option value="1.91:1">1.91:1 (แนวนอน)</option>
+              <option value="1:1">1:1 (จัตุรัส)</option>
+              <option value="9:16">9:16 (แนวตั้ง)</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="json-input" class="hidden">
+          <textarea id="jsonCode" rows="6" class="w-full px-4 py-3 rounded-xl border border-gray-200 input-field outline-none font-mono text-xs" placeholder='JSON Code...'></textarea>
+        </div>
+
+        <div class="flex items-center justify-between bg-green-50 p-4 rounded-xl border border-green-100">
+          <div>
+            <h4 class="text-sm font-bold text-gray-800">แชร์วนซ้ำ (Viral Loop)</h4>
+            <p class="text-xs text-gray-500">สร้างปุ่มให้คนอื่นแชร์ต่อได้ทันที</p>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="addShareBtn" class="sr-only peer" checked>
+            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:bg-[#06c755] peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all"></div>
+          </label>
+        </div>
+      </div>
+
+      <button onclick="sendShareTarget()" class="btn-gradient w-full py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transform transition-all active:scale-95">
+        <span>เลือกกลุ่มที่จะส่ง</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+      </button>
+
+    </div>
+  </div>
+
+  <script>
+    // --- ตั้งค่า ---
+    const LIFF_ID = "2008762104-g2Svj3fy"; 
+    // ใส่ URL ของ Google Apps Script ที่ได้จากการ Deploy (Web App)
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyfYkLOJKKskA3UfwyNxSmk4BmLj3nq91uNFeYjv9G8SxA9UnPh8gyv65_Cmx1xtss/exec"; 
+
+    let currentType = 'image';
+
+    async function main() {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) { liff.login(); return; }
+      checkViralParams();
+    }
+    main();
+
+    // 1. ระบบเติมคำอัตโนมัติ (Viral Loop)
+    function checkViralParams() {
+      const p = new URLSearchParams(window.location.search);
+      if (p.get('auto') === 'yes') {
+        if(p.get('title')) document.getElementById('msgTitle').value = p.get('title');
+        if(p.get('url')) document.getElementById('mediaUrl').value = p.get('url');
+        if(p.get('preview')) document.getElementById('previewUrl').value = p.get('preview');
+        if(p.get('ratio')) document.getElementById('aspectRatio').value = p.get('ratio');
+        setType(p.get('type') || 'image');
+        Swal.fire({ icon: 'info', title: 'พร้อมส่งต่อ!', text: 'ข้อมูลถูกโหลดเรียบร้อยแล้ว', timer: 1500, showConfirmButton: false });
+      }
+    }
+
+    // 2. UI Switcher
+    function setType(type) {
+      currentType = type;
+      document.querySelectorAll('.type-btn').forEach(b => {
+        b.classList.remove('bg-white', 'shadow-sm', 'text-[#06c755]');
+        b.classList.add('text-gray-400');
+      });
+      document.getElementById(`btn-${type}`).classList.add('bg-white', 'shadow-sm', 'text-[#06c755]');
+      
+      const media = document.getElementById('media-inputs');
+      const json = document.getElementById('json-input');
+      const title = document.getElementById('title-group');
+      
+      if (type === 'json') {
+        media.classList.add('hidden'); title.classList.add('hidden'); json.classList.remove('hidden');
+      } else {
+        media.classList.remove('hidden'); title.classList.remove('hidden'); json.classList.add('hidden');
+        document.getElementById('preview-field').classList.toggle('hidden', type !== 'video');
+        document.getElementById('media-label').innerText = (type === 'video') ? "ลิงก์ไฟล์วีดีโอ (MP4)" : "ลิงก์รูปภาพ";
+      }
+    }
+
+    // 3. สร้าง Flex Message
+    function createFlexContent() {
+      const addShare = document.getElementById('addShareBtn').checked;
+      const title = document.getElementById('msgTitle').value;
+      const url = document.getElementById('mediaUrl').value;
+      const ratio = document.getElementById('aspectRatio').value;
+      
+      if (currentType === 'json') {
+        try { return JSON.parse(document.getElementById('jsonCode').value); } 
+        catch { return null; }
+      }
+      
+      if (!title || !url) return null;
+
+      let shareParams = `?auto=yes&type=${currentType}&title=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}&ratio=${ratio}`;
+      let hero = { "type": "image", "url": url, "size": "full", "aspectRatio": ratio, "aspectMode": "cover", "action": { "type": "uri", "uri": url }};
+      
+      if (currentType === 'video') {
+        const preview = document.getElementById('previewUrl').value;
+        if(!preview) return null;
+        shareParams += `&preview=${encodeURIComponent(preview)}`;
+        hero = { 
+            "type": "video", "url": url, "previewUrl": preview, "aspectRatio": ratio,
+            "altContent": { "type": "image", "size": "full", "aspectRatio": ratio, "aspectMode": "cover", "url": preview }
+        };
+      }
+
+      const bubble = {
+        "type": "bubble",
+        "hero": hero,
+        "body": {
+          "type": "box", "layout": "vertical",
+          "contents": [{ "type": "text", "text": title, "weight": "bold", "size": "xl", "wrap": true }]
+        }
+      };
+
+      if (addShare) {
+        bubble.footer = {
+          "type": "box", "layout": "vertical",
+          "contents": [{
+            "type": "button", "style": "secondary", "color": "#06c755", "height": "sm",
+            "action": { "type": "uri", "label": "♻️ แชร์ต่อให้กลุ่มอื่น", "uri": "https://liff.line.me/" + LIFF_ID + shareParams }
+          }]
+        };
+      }
+      return bubble;
+    }
+
+    // 4. บันทึกข้อมูลไปยัง Google Sheets (ผ่าน GAS API)
+    async function logToSheet(data) {
+      if(GAS_API_URL.includes("xxxx")) return; // ถ้ายังไม่ใส่ URL ก็ข้ามไป
+      try {
+        const profile = await liff.getProfile();
+        const payload = {
+            ...data,
+            user_id: profile.userId,
+            display_name: profile.displayName,
+            timestamp: new Date().toISOString()
+        };
+        // ส่งแบบ no-cors (Fire and forget) หรือจัดการ CORS ที่ GAS
+        fetch(GAS_API_URL, {
+            method: 'POST',
+            mode: 'no-cors', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+      } catch (e) { console.error("Log Error", e); }
+    }
+
+    // 5. ส่งข้อความ
+    async function sendShareTarget() {
+      const content = createFlexContent();
+      if (!content) { Swal.fire('แจ้งเตือน', 'กรุณากรอกข้อมูลให้ครบถ้วน', 'warning'); return; }
+
+      Swal.fire({ title: 'กำลังประมวลผล...', didOpen: () => Swal.showLoading() });
+
+      try {
+        if (liff.isApiAvailable('shareTargetPicker')) {
+          const res = await liff.shareTargetPicker([{ type: "flex", altText: "Flex Share", contents: content }]);
+          if (res) {
+            // บันทึก Log เมื่อส่งสำเร็จ
+            logToSheet({ 
+                type: currentType, 
+                title: document.getElementById('msgTitle').value,
+                target: 'group_share' 
+            });
+            
+            Swal.fire({ icon: 'success', title: 'ส่งสำเร็จ!', confirmButtonColor: '#06c755' });
+          } else { Swal.close(); }
+        } else { Swal.fire('Error', 'อุปกรณ์ไม่รองรับ', 'error'); }
+      } catch (error) { Swal.fire('Error', error.message, 'error'); }
+    }
+  </script>
+</body>
+</html>
