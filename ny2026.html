@@ -2,315 +2,282 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
+  <title>Flex Share Pro</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Flex Share Master Pro</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
-  
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+
   <style>
-    body { font-family: 'Prompt', sans-serif; background-color: #f1f5f9; }
-    
-    /* Loading Overlay */
-    #loading-overlay {
+    body { font-family: 'Kanit', sans-serif; background-color: #f3f4f6; }
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .loader-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(255, 255, 255, 0.9); z-index: 9999;
-      display: flex; flex-direction: column; justify-content: center; align-items: center;
-      backdrop-filter: blur(4px); transition: opacity 0.5s;
+      background: rgba(255,255,255,0.9); z-index: 9999;
+      display: flex; justify-content: center; align-items: center; flex-direction: column;
+      transition: opacity 0.3s;
     }
-
-    /* Glass Card */
-    .glass-card {
-      background: white; border-radius: 24px;
-      box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15);
-      border: 1px solid rgba(255,255,255,0.5);
-    }
-
-    /* Input Styling */
-    .input-label { font-size: 0.8rem; font-weight: 600; color: #64748b; margin-bottom: 4px; display: block; }
-    .input-std {
-      width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid #e2e8f0;
-      background: #f8fafc; transition: all 0.3s ease; font-size: 0.95rem;
-    }
-    .input-std:focus { border-color: #06c755; background: #fff; ring: 3px; outline: none; box-shadow: 0 0 0 3px rgba(6, 199, 85, 0.1); }
-
-    /* Type Button */
-    .type-btn { transition: all 0.2s; position: relative; overflow: hidden; }
-    .type-btn:active { transform: scale(0.96); }
-
-    /* Animations */
-    .fade-in { animation: fadeIn 0.4s ease-out forwards; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .hidden-force { display: none !important; }
+    .nav-btn.active { background-color: #06c755; color: white; border-color: #06c755; }
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body class="text-gray-800 h-screen flex flex-col items-center justify-center p-4">
 
-  <div id="loading-overlay">
-    <div class="animate-spin rounded-full h-14 w-14 border-4 border-slate-200 border-t-green-500 mb-4"></div>
-    <p class="text-slate-500 font-medium animate-pulse">Connecting to LINE...</p>
+  <div id="loader" class="loader-overlay">
+    <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-green-500 mb-4"></div>
+    <p class="text-green-600 font-bold text-lg animate-pulse" id="loading-text">กำลังโหลดระบบ...</p>
   </div>
 
-  <div class="glass-card w-full max-w-md p-6 sm:p-8 fade-in relative">
+  <div id="app-container" class="glass-panel w-full max-w-md p-6 hidden-force">
     
     <div class="text-center mb-6">
-      <div class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-50 text-green-500 mb-3 shadow-sm">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-        </svg>
-      </div>
-      <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Flex Share Master</h1>
-      <p class="text-slate-400 text-sm mt-1">สร้างและส่งต่อ Flex Message แบบ Viral</p>
+      <h1 class="text-2xl font-bold text-gray-800"><i class="fab fa-line text-green-500"></i> Flex Share Pro</h1>
+      <p class="text-xs text-gray-500 mt-1">External Host Edition</p>
     </div>
 
-    <div class="grid grid-cols-3 gap-3 mb-6 p-1 bg-slate-100 rounded-2xl">
-      <button onclick="setType('image')" id="btn-image" class="type-btn py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:text-slate-700">📸 รูปภาพ</button>
-      <button onclick="setType('video')" id="btn-video" class="type-btn py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:text-slate-700">🎥 วีดีโอ</button>
-      <button onclick="setType('json')" id="btn-json" class="type-btn py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:text-slate-700">💻 JSON</button>
+    <div class="grid grid-cols-3 gap-2 mb-6">
+      <button onclick="switchType('image')" id="btn-image" class="nav-btn active border border-gray-200 py-2 rounded-lg text-sm font-medium transition hover:bg-green-50">
+        <i class="fas fa-image mb-1 block"></i> รูปภาพ
+      </button>
+      <button onclick="switchType('video')" id="btn-video" class="nav-btn border border-gray-200 py-2 rounded-lg text-sm font-medium transition hover:bg-green-50">
+        <i class="fas fa-video mb-1 block"></i> วีดีโอ
+      </button>
+      <button onclick="switchType('json')" id="btn-json" class="nav-btn border border-gray-200 py-2 rounded-lg text-sm font-medium transition hover:bg-green-50">
+        <i class="fas fa-code mb-1 block"></i> JSON
+      </button>
     </div>
 
-    <div id="form-container" class="space-y-4 mb-8 hidden">
-      
-      <div id="input-image" class="hidden space-y-4 fade-in">
-        <div>
-          <label class="input-label">URL รูปภาพ</label>
-          <input type="url" id="img-url" class="input-std" placeholder="https://example.com/image.jpg">
+    <div id="form-content">
+      <div id="media-inputs">
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">URL ไฟล์สื่อ</label>
+          <input type="url" id="media-url" placeholder="https://..." class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition">
         </div>
-        <div>
-          <label class="input-label">ลิงก์ปลายทาง (เมื่อกดรูป)</label>
-          <input type="url" id="img-action" class="input-std" placeholder="https://your-website.com">
+        
+        <div class="mb-4 hidden" id="preview-image-container">
+           <label class="block text-sm font-medium text-gray-700 mb-1">URL รูปปก</label>
+           <input type="url" id="preview-url" placeholder="https://..." class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none transition">
+        </div>
+
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">อัตราส่วน</label>
+          <select id="media-ratio" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none bg-white">
+            <option value="1:1">1:1 (Square)</option>
+            <option value="1.51:1">1.51:1 (Standard)</option>
+            <option value="16:9">16:9 (Wide)</option>
+          </select>
         </div>
       </div>
 
-      <div id="input-video" class="hidden space-y-4 fade-in">
-        <div>
-          <label class="input-label">URL วีดีโอ (.mp4)</label>
-          <input type="url" id="vid-url" class="input-std" placeholder="https://example.com/video.mp4">
+      <div id="json-inputs" class="hidden-force">
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Flex Message JSON</label>
+          <textarea id="json-code" rows="6" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:outline-none font-mono text-xs"></textarea>
         </div>
-        <div>
-          <label class="input-label">URL รูปปกวีดีโอ</label>
-          <input type="url" id="vid-preview" class="input-std" placeholder="https://example.com/cover.jpg">
-        </div>
-      </div>
-
-      <div id="input-json" class="hidden space-y-4 fade-in">
-        <div>
-          <label class="input-label">วางโค้ด JSON (Flex Message Object)</label>
-          <textarea id="json-code" rows="6" class="input-std font-mono text-xs bg-slate-50" placeholder='{"type": "bubble", ...}'></textarea>
-        </div>
-      </div>
-
-      <div class="pt-4 border-t border-slate-100 fade-in">
-        <label class="input-label">Alt Text (ข้อความแจ้งเตือน)</label>
-        <input type="text" id="alt-text" class="input-std" value="คุณได้รับข้อความใหม่ 🎁" placeholder="ข้อความที่จะเด้งแจ้งเตือน">
       </div>
     </div>
 
-    <button onclick="processAndShare()" id="submit-btn" class="w-full bg-gradient-to-br from-green-500 to-emerald-600 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-green-500/25 hover:shadow-green-500/40 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed hidden">
-      📤 ส่งไปยังกลุ่มไลน์
+    <button onclick="processAndShare()" class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl shadow-lg transform transition active:scale-95 flex justify-center items-center">
+      <i class="fas fa-share-alt mr-2"></i> ส่งข้อความ
     </button>
-    
-    <p class="text-center text-xs text-slate-300 mt-4">Safe-Zone Enabled for Easy Forwarding</p>
-
   </div>
 
   <script>
-    // ==========================================
-    // ⚙️ การตั้งค่าระบบ (Configuration)
-    // ==========================================
-    const LIFF_ID = "2008762104-tW1Fyo2F";       // 1. ใส่ LIFF ID ของคุณ
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxF83NZAmhaWdkL6OweLTIMUqB_19o-aJXA9NasONl5ryYJ6r_oeMgcWwO9D1s9efKS/exec"; // 2. ใส่ URL ของ Google Apps Script Web App
-    // ==========================================
+    // --- Configuration ---
+    // 1. ใส่ LIFF ID ที่ตั้งค่าไว้ใน LINE Developers
+    const LIFF_ID = '2008762104-tW1Fyo2F'; 
+    
+    // 2. ใส่ Web App URL ที่ได้จากการ Deploy Google Apps Script ในส่วนที่ 1
+    const GAS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxF_ZRJV8znd68PDtRcLfAWbEYfsfCrN8IwlUGxS5otmVl7yqdr7nrdCE48G6SZpvk/exec'; 
 
-    let currentType = '';
-    let userProfile = null;
+    let currentType = 'image';
 
-    // --- 1. เริ่มต้นระบบ (Initialization) ---
-    async function main() {
+    // --- Initialization ---
+    window.onload = async function() {
       try {
         await liff.init({ liffId: LIFF_ID });
         
-        // ซ่อน Loading เมื่อโหลดเสร็จ
-        const overlay = document.getElementById('loading-overlay');
-        overlay.style.opacity = '0';
-        setTimeout(() => overlay.style.display = 'none', 500);
-
         if (!liff.isLoggedIn()) {
           liff.login();
+          return;
+        }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+
+        if (mode === 'forward') {
+          handleAutoForward(urlParams);
         } else {
-          userProfile = await liff.getProfile();
+          document.getElementById('loader').classList.add('hidden-force');
+          document.getElementById('app-container').classList.remove('hidden-force');
         }
+
       } catch (err) {
-        document.getElementById('loading-overlay').style.display = 'none';
-        Swal.fire({ icon: 'error', title: 'Init Error', text: err.message });
+        showError('LIFF Init Error: ' + err.message);
       }
-    }
-    main();
+    };
 
-    // --- 2. ควบคุม UI (UI Logic) ---
-    function setType(type) {
+    function switchType(type) {
       currentType = type;
-      
-      // Reset Button Styles
-      document.querySelectorAll('.type-btn').forEach(btn => {
-        btn.className = "type-btn py-2.5 rounded-xl text-sm font-semibold text-slate-500 hover:text-slate-700 hover:bg-slate-50";
-      });
-      
-      // Active Button Style
-      const activeBtn = document.getElementById(`btn-${type}`);
-      activeBtn.className = "type-btn py-2.5 rounded-xl text-sm font-semibold text-green-600 bg-white shadow-sm ring-1 ring-slate-200";
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(`btn-${type}`).classList.add('active');
 
-      // Toggle Inputs
-      document.getElementById('form-container').classList.remove('hidden');
-      ['image', 'video', 'json'].forEach(t => document.getElementById(`input-${t}`).classList.add('hidden'));
-      document.getElementById(`input-${type}`).classList.remove('hidden');
+      const mediaInputs = document.getElementById('media-inputs');
+      const jsonInputs = document.getElementById('json-inputs');
+      const previewContainer = document.getElementById('preview-image-container');
 
-      // Show Submit Button
-      document.getElementById('submit-btn').classList.remove('hidden');
-    }
-
-    // --- 3. สร้าง Flex Message (Content Generation) ---
-    function createFlexMessage() {
-      const altText = document.getElementById('alt-text').value;
-      let bubbleContent = {};
-
-      // 🔥 Safe Zone Footer: พื้นที่ปลอดภัยสำหรับการกดแช่เพื่อส่งต่อ
-      const safeZoneFooter = {
-        "type": "box",
-        "layout": "vertical",
-        "contents": [
-          { "type": "separator", "color": "#f0f0f0", "margin": "lg" },
-          {
-            "type": "button",
-            "action": { "type": "uri", "label": "สร้างข้อความแบบนี้ 🚀", "uri": `https://liff.line.me/${LIFF_ID}` },
-            "style": "link", "height": "sm", "color": "#06c755", "margin": "sm"
-          },
-          {
-            "type": "text", 
-            "text": "กดแช่ตรงนี้เพื่อส่งต่อ ⤴️", 
-            "size": "xxs", "color": "#94a3b8", "align": "center", "margin": "none" 
-          }
-        ],
-        "paddingAll": "md",
-        "backgroundColor": "#ffffff"
-      };
-
-      if (currentType === 'image') {
-        const url = document.getElementById('img-url').value;
-        const actionUrl = document.getElementById('img-action').value;
-        if (!url) throw new Error("กรุณาระบุ URL รูปภาพ");
-
-        bubbleContent = {
-          "type": "bubble",
-          "hero": {
-            "type": "image", "url": url, "size": "full", "aspectRatio": "1.91:1", "aspectMode": "cover",
-            "action": actionUrl ? { "type": "uri", "uri": actionUrl } : undefined
-          },
-          // Body ว่างไว้หรือใส่ Text เพื่อดัน Hero ขึ้นไป แต่ที่สำคัญคือ Footer
-          "body": {
-            "type": "box", "layout": "vertical", "paddingAll": "none",
-            "contents": [] // Empty body hack
-          },
-          "footer": safeZoneFooter
-        };
-
-      } else if (currentType === 'video') {
-        const url = document.getElementById('vid-url').value;
-        const preview = document.getElementById('vid-preview').value;
-        if (!url || !preview) throw new Error("กรุณาระบุ URL ให้ครบ");
-
-        bubbleContent = {
-          "type": "bubble",
-          "hero": {
-            "type": "video", "url": url, "previewUrl": preview, "aspectRatio": "16:9",
-            "altContent": { "type": "image", "size": "full", "aspectRatio": "16:9", "aspectMode": "cover", "url": preview }
-          },
-          "body": {
-            "type": "box", "layout": "vertical", "contents": [
-              { "type": "text", "text": "🎥 วีดีโอแนะนำ", "weight": "bold", "size": "sm", "color": "#334155" }
-            ],
-            "paddingTop": "md", "paddingBottom": "sm", "paddingStart": "md", "paddingEnd": "md"
-          },
-          "footer": safeZoneFooter
-        };
-
-      } else if (currentType === 'json') {
-        const jsonStr = document.getElementById('json-code').value;
-        if (!jsonStr) throw new Error("กรุณาใส่โค้ด JSON");
-        
-        let userJson = JSON.parse(jsonStr);
-        // Inject Footer ถ้าเป็น Bubble และยังไม่มี Footer
-        if (userJson.type === 'bubble' && !userJson.footer) {
-          userJson.footer = safeZoneFooter;
-        }
-        bubbleContent = userJson;
+      if (type === 'json') {
+        mediaInputs.classList.add('hidden-force');
+        jsonInputs.classList.remove('hidden-force');
+      } else {
+        mediaInputs.classList.remove('hidden-force');
+        jsonInputs.classList.add('hidden-force');
+        if(type === 'video') previewContainer.classList.remove('hidden');
+        else previewContainer.classList.add('hidden');
       }
-
-      return {
-        type: "flex",
-        altText: altText,
-        contents: bubbleContent
-      };
     }
 
-    // --- 4. ประมวลผลและแชร์ (Process & Share) ---
     async function processAndShare() {
-      if (!liff.isLoggedIn()) { liff.login(); return; }
+      Swal.fire({ title: 'กำลังประมวลผล', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
       try {
-        // Build Message
-        const message = createFlexMessage();
-        
-        // Prepare Log Data
-        const logData = {
-          type: currentType,
-          altText: message.altText,
-          userId: userProfile ? userProfile.userId : 'unknown',
-          contentUrl: currentType === 'image' ? document.getElementById('img-url').value : (currentType === 'video' ? document.getElementById('vid-url').value : 'JSON')
-        };
+        let flexContent, shareUrl;
+        // ใช้ URL ปัจจุบันของโฮสต์ภายนอกแทน liff.line.me เพื่อความแน่นอนในการ Redirect กลับมา
+        // แต่ใน LIFF v2 ใช้ liff.line.me/ID จะดีที่สุดเพราะมัน handle cross-platform
+        const baseUrl = `https://liff.line.me/${LIFF_ID}`;
 
-        // Loading
-        Swal.fire({
-          title: 'กำลังประมวลผล',
-          html: 'บันทึกข้อมูลและเตรียมส่ง...',
-          allowOutsideClick: false,
-          didOpen: () => Swal.showLoading()
-        });
+        if (currentType === 'image' || currentType === 'video') {
+            const url = document.getElementById('media-url').value;
+            const ratio = document.getElementById('media-ratio').value;
+            const previewUrl = currentType === 'video' ? document.getElementById('preview-url').value : null;
+            
+            if(!url) throw new Error("กรุณาระบุ URL");
 
-        // Send to Backend (Fire & Forget)
-        if(GAS_API_URL && GAS_API_URL.startsWith('http')) {
-            fetch(GAS_API_URL, {
-            method: 'POST', mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(logData)
-            }).catch(e => console.log('Log Error:', e));
+            const payloadData = { type: currentType, url, ratio, previewUrl };
+            const payload = encodeURIComponent(JSON.stringify(payloadData));
+            shareUrl = `${baseUrl}?mode=forward&payload=${payload}`;
+            
+            flexContent = createMediaFlex(url, ratio, currentType, shareUrl, previewUrl);
+            
+            // บันทึก Log ไปยัง GAS
+            saveLogToGAS(payloadData);
+
+        } else if (currentType === 'json') {
+            const rawJson = document.getElementById('json-code').value;
+            if(!rawJson) throw new Error("กรุณาระบุ JSON");
+            let jsonObj = JSON.parse(rawJson);
+            
+            const payloadData = { type: 'json', data: jsonObj };
+            const payload = encodeURIComponent(JSON.stringify(payloadData));
+            shareUrl = `${baseUrl}?mode=forward&payload=${payload}`;
+            
+            flexContent = injectShareButton(jsonObj, shareUrl);
+            saveLogToGAS(payloadData);
         }
 
-        // Wait a bit for UX
-        await new Promise(r => setTimeout(r, 800));
         Swal.close();
-
-        // Share Target Picker
-        if (liff.isApiAvailable('shareTargetPicker')) {
-          const res = await liff.shareTargetPicker([message]);
-          if (res) {
-            Swal.fire({
-              icon: 'success',
-              title: 'แชร์สำเร็จ!',
-              text: 'ข้อความถูกส่งไปยังกลุ่มที่เลือกแล้ว',
-              confirmButtonColor: '#06c755'
-            });
-          }
-        } else {
-          Swal.fire('Error', 'อุปกรณ์นี้ไม่รองรับการแชร์', 'error');
-        }
+        await shareTargetPicker(flexContent);
 
       } catch (err) {
-        Swal.fire('ข้อมูลไม่ถูกต้อง', err.message, 'warning');
+        Swal.close();
+        showError(err.message);
       }
     }
+
+    async function handleAutoForward(params) {
+        const payloadStr = params.get('payload');
+        document.getElementById('loading-text').innerText = "กำลังเตรียมส่งต่อ...";
+        
+        try {
+            if(!payloadStr) throw new Error("ไม่พบข้อมูล");
+            const data = JSON.parse(decodeURIComponent(payloadStr));
+            const baseUrl = `https://liff.line.me/${LIFF_ID}`;
+            const nextShareUrl = `${baseUrl}?mode=forward&payload=${payloadStr}`;
+            
+            let flexContent;
+            if(data.type === 'image') flexContent = createMediaFlex(data.url, data.ratio, 'image', nextShareUrl);
+            else if (data.type === 'video') flexContent = createMediaFlex(data.url, data.ratio, 'video', nextShareUrl, data.previewUrl);
+            else if (data.type === 'json') flexContent = injectShareButton(data.data, nextShareUrl);
+
+            // บันทึก Log การ Forward
+            saveLogToGAS({ ...data, action: 'forward' });
+
+            await shareTargetPicker(flexContent);
+            liff.closeWindow();
+
+        } catch (err) {
+            showError(err.message);
+            document.getElementById('loader').classList.add('hidden-force');
+            document.getElementById('app-container').classList.remove('hidden-force');
+        }
+    }
+
+    // --- Backend Connection (Logging) ---
+    function saveLogToGAS(data) {
+        if (!GAS_SCRIPT_URL || GAS_SCRIPT_URL.includes('YOUR_GAS')) return;
+
+        // ดึงข้อมูล User
+        liff.getProfile().then(profile => {
+            const logData = {
+                userId: profile.userId,
+                displayName: profile.displayName,
+                ...data
+            };
+
+            // ใช้ mode: 'no-cors' เพื่อยิงข้อมูลไปโดยไม่ต้องรอ Response และเลี่ยงปัญหา CORS
+            fetch(GAS_SCRIPT_URL, {
+                method: 'POST',
+                mode: 'no-cors', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(logData)
+            }).catch(e => console.error("Log Error:", e));
+        }).catch(e => console.error("Profile Error:", e));
+    }
+
+    // --- Flex Builders (คงเดิม) ---
+    function createMediaFlex(url, ratio, type, shareUrl, previewUrl = "") {
+        const heroBlock = type === 'image' 
+            ? { "type": "image", "url": url, "size": "full", "aspectRatio": ratio, "aspectMode": "cover", "action": { "type": "uri", "uri": url } }
+            : { "type": "video", "url": url, "previewUrl": previewUrl, "aspectRatio": ratio, "altContent": { "type": "image", "url": previewUrl, "size": "full", "aspectRatio": ratio, "aspectMode": "cover" }, "action": { "type": "uri", "uri": url } };
+
+        return {
+            "type": "flex", "altText": `ส่ง ${type === 'image' ? 'รูปภาพ' : 'วีดีโอ'}`,
+            "contents": {
+                "type": "bubble", "hero": heroBlock,
+                "body": { "type": "box", "layout": "vertical", "contents": [{ "type": "text", "text": "คลิกปุ่มด้านล่างเพื่อแชร์ต่อ", "align": "center", "color": "#aaaaaa", "size": "xs" }], "paddingAll": "10px" },
+                "footer": { "type": "box", "layout": "vertical", "contents": [{ "type": "button", "style": "primary", "height": "sm", "action": { "type": "uri", "label": "แชร์ให้เพื่อน 🚀", "uri": shareUrl }, "color": "#06c755" }], "paddingAll": "10px" }
+            }
+        };
+    }
+
+    function injectShareButton(originalJson, shareUrl) {
+        let newJson = JSON.parse(JSON.stringify(originalJson));
+        if (newJson.type === 'flex' && newJson.contents && newJson.contents.type === 'bubble') {
+            const shareBtn = { "type": "button", "style": "primary", "height": "sm", "margin": "md", "action": { "type": "uri", "label": "แชร์ต่อทันที 🚀", "uri": shareUrl }, "color": "#06c755" };
+            if (!newJson.contents.footer) newJson.contents.footer = { "type": "box", "layout": "vertical", "contents": [] };
+            newJson.contents.footer.contents.push(shareBtn);
+        }
+        return newJson;
+    }
+
+    async function shareTargetPicker(flexMessage) {
+        if (liff.isApiAvailable('shareTargetPicker')) {
+            const res = await liff.shareTargetPicker([flexMessage]);
+            if (res) Swal.fire({ icon: 'success', title: 'ส่งเรียบร้อย!', timer: 1500, showConfirmButton: false });
+        } else {
+            showError("อุปกรณ์ไม่รองรับ Share Target Picker");
+        }
+    }
+
+    function showError(msg) { Swal.fire({ icon: 'error', title: 'Oops...', text: msg }); }
   </script>
 </body>
 </html>
-
