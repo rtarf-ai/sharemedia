@@ -28,9 +28,10 @@
 <body class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-green-50 to-blue-50">
 
   <div id="app-container" class="glass-panel w-full max-w-md p-6 fade-in hidden">
+    
     <div class="text-center mb-6">
       <h1 class="text-2xl font-bold text-gray-800">Flex Share System</h1>
-      <p class="text-sm text-gray-500">Host: GitHub Pages</p>
+      <p class="text-sm text-gray-500">Viral Share Target Picker</p>
     </div>
 
     <div class="flex justify-around mb-6 border-b border-gray-200" id="tab-container">
@@ -40,6 +41,7 @@
     </div>
 
     <div id="form-content">
+      
       <div class="mb-4">
         <label class="block text-gray-700 text-sm font-bold mb-2">หัวข้อ/รายละเอียด (Alt Text)</label>
         <input type="text" id="input-alt" class="shadow appearance-none border rounded w-full py-3 px-3 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="กรอกรายละเอียด...">
@@ -60,14 +62,21 @@
         <select id="input-ratio" class="block appearance-none w-full bg-white border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:ring-2 focus:ring-green-500">
           <option value="1:1">1:1 (Square)</option>
           <option value="1.51:1">1.51:1 (Standard)</option>
+          <option value="1.91:1">1.91:1 (Wide)</option>
+          <option value="4:3">4:3</option>
           <option value="16:9">16:9</option>
+          <option value="20:13">20:13</option>
           <option value="9:16">9:16 (Vertical)</option>
         </select>
       </div>
 
       <button onclick="handleShare()" id="btn-share" class="w-full bg-[#06C755] hover:bg-[#05b34c] text-white font-bold py-3 px-4 rounded-xl shadow-lg transform transition hover:-translate-y-1 focus:outline-none flex justify-center items-center gap-2">
         <span>แชร์ไปยังกลุ่ม</span>
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+        </svg>
       </button>
+
     </div>
   </div>
 
@@ -78,49 +87,79 @@
 
   <script>
     // *******************************************
-    // ตั้งค่า URL และ ID ที่นี่
-    const LIFF_ID = "2008762104-tW1Fyo2F"; 
-    const GAS_EXEC_URL = "https://script.google.com/macros/s/AKfycbz7zXX_05WwntyKEjxZE9PdBXJgIR9bXpJDoVHt5ej4hFbRGnbO4vA9aw1B96LOdZg/exec"; 
+    // ⚠️ ส่วนที่ต้องแก้ไข: ใส่ข้อมูลของคุณที่นี่
+    // *******************************************
+    const LIFF_ID = "2008762104-tW1Fyo2F";       // ใส่ LIFF ID ที่ได้จาก LINE Developers
+    const GAS_EXEC_URL = "https://script.google.com/macros/s/AKfycbz7zXX_05WwntyKEjxZE9PdBXJgIR9bXpJDoVHt5ej4hFbRGnbO4vA9aw1B96LOdZg/exec"; // ใส่ Web App URL ที่ได้จาก Google Apps Script
     // *******************************************
 
     let currentMode = 'image';
     let userProfile = null;
     let isReshareMode = false;
 
-    window.onload = async function() { await initializeLiff(); };
+    // --- Initialization ---
+    window.onload = async function() {
+      await initializeLiff();
+    };
 
     async function initializeLiff() {
       try {
         await liff.init({ liffId: LIFF_ID });
-        if (!liff.isLoggedIn()) { liff.login(); return; }
         
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
         userProfile = await liff.getProfile();
         
+        // Check for Query Params (Reshare Logic)
         const urlParams = new URLSearchParams(window.location.search);
         const sharedData = urlParams.get('data');
         
         if (sharedData) {
           handleReshareMode(sharedData);
         } else {
+          // Normal Mode
           document.getElementById('loader').classList.add('hidden');
           document.getElementById('app-container').classList.remove('hidden');
         }
+
       } catch (err) {
-        Swal.fire('Error', 'LIFF Init Failed: ' + err, 'error');
+        console.error(err);
+        Swal.fire('Error', 'LIFF Initialization failed: ' + err, 'error');
       }
     }
 
+    // --- Logic for Tabs & UI ---
     function switchTab(mode) {
       currentMode = mode;
+      
+      // Reset UI styles
       ['image', 'video', 'json'].forEach(m => {
         const btn = document.getElementById(`tab-${m}`);
-        btn.className = (m === mode) ? 'tab-active pb-2 px-4 w-1/3 text-center transition' : 'tab-inactive pb-2 px-4 w-1/3 text-center transition';
+        if(m === mode) {
+          btn.classList.remove('tab-inactive');
+          btn.classList.add('tab-active');
+        } else {
+          btn.classList.remove('tab-active');
+          btn.classList.add('tab-inactive');
+        }
       });
-      document.getElementById('url-group').classList.toggle('hidden', mode === 'json');
-      document.getElementById('ratio-group').classList.toggle('hidden', mode === 'json');
-      document.getElementById('json-group').classList.toggle('hidden', mode !== 'json');
+
+      // Toggle Inputs
+      if (mode === 'json') {
+        document.getElementById('url-group').classList.add('hidden');
+        document.getElementById('ratio-group').classList.add('hidden');
+        document.getElementById('json-group').classList.remove('hidden');
+      } else {
+        document.getElementById('url-group').classList.remove('hidden');
+        document.getElementById('ratio-group').classList.remove('hidden');
+        document.getElementById('json-group').classList.add('hidden');
+      }
     }
 
+    // --- Core Logic: Handle Share ---
     async function handleShare() {
       const altText = document.getElementById('input-alt').value || 'Flex Message';
       let flexMessage = null;
@@ -129,38 +168,40 @@
       try {
         Swal.fire({ title: 'กำลังประมวลผล...', didOpen: () => Swal.showLoading() });
 
-        // 1. Prepare Data
         if (currentMode === 'json') {
            const rawJson = document.getElementById('input-json').value;
            flexMessage = JSON.parse(rawJson);
-           payloadToEncode = { m: 'json', d: rawJson, a: altText };
+           payloadToEncode = { m: 'json', d: rawJson, a: altText }; 
         } else {
            const url = document.getElementById('input-url').value;
            const ratio = document.getElementById('input-ratio').value;
+           
            if (!url) throw new Error("กรุณาระบุ URL");
+
            flexMessage = createMediaFlex(currentMode, url, ratio, altText);
            payloadToEncode = { m: currentMode, u: url, r: ratio, a: altText };
         }
 
-        // 2. Add Reshare Button (Point back to THIS GitHub URL)
-        // เมื่ออยู่บน GitHub, liff.getPermanentLink() หรือ window.location.href จะเป็น URL ใหม่แล้ว
+        // สร้างปุ่มแชร์ต่อ (Viral Loop)
         flexMessage = appendReshareButton(flexMessage, payloadToEncode);
 
-        // 3. Save Log to Google Sheet via Fetch API
-        // ใช้ fetch แบบ no-cors เพื่อส่งข้อมูลไป GAS โดยไม่ติด Browser Block (Fire and Forget)
-        fetch(GAS_EXEC_URL, {
-            method: 'POST',
-            mode: 'no-cors', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                type: currentMode,
-                url: payloadToEncode.u || 'JSON',
-                ratio: payloadToEncode.r || '-',
-                userId: userProfile.userId
-            })
-        });
+        // ส่ง Log ไป Google Sheet (Fire & Forget)
+        // ใช้ no-cors เพื่อเลี่ยงปัญหา Cross-Origin แต่ข้อมูลยังส่งไปถึง
+        if(GAS_EXEC_URL && GAS_EXEC_URL.includes("script.google.com")) {
+            fetch(GAS_EXEC_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: currentMode,
+                    url: payloadToEncode.u || 'JSON',
+                    ratio: payloadToEncode.r || '-',
+                    userId: userProfile.userId
+                })
+            }).catch(err => console.log('Log Error:', err));
+        }
 
-        // 4. Share Target Picker
+        // เปิด Share Target Picker
         sendShareTargetPicker(flexMessage, altText);
 
       } catch (error) {
@@ -168,83 +209,165 @@
       }
     }
 
+    // --- Reshare Logic (Viral Loop) ---
     function handleReshareMode(encodedData) {
       isReshareMode = true;
-      document.getElementById('loader').innerHTML = '<h2 class="mt-4 text-gray-600">กำลังเตรียมส่งต่อ...</h2>';
+      document.getElementById('loader').innerHTML = '<div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4"></div><h2 class="mt-2 text-gray-600">กำลังเตรียมส่งต่อ...</h2>';
+      
       try {
-        const decoded = JSON.parse(atob(encodedData));
-        let flexMessage = (decoded.m === 'json') ? JSON.parse(decoded.d) : createMediaFlex(decoded.m, decoded.u, decoded.r, decoded.a);
+        // ✅ แก้ไข: เพิ่มการ decode สำหรับภาษาไทย
+        const decoded = JSON.parse(decodeURIComponent(escape(atob(encodedData))));
+        
+        let flexMessage = null;
+
+        if (decoded.m === 'json') {
+           flexMessage = JSON.parse(decoded.d);
+        } else {
+           flexMessage = createMediaFlex(decoded.m, decoded.u, decoded.r, decoded.a);
+        }
+
+        // Re-append button so the next person can share too
         flexMessage = appendReshareButton(flexMessage, decoded);
-        setTimeout(() => { sendShareTargetPicker(flexMessage, decoded.a); }, 800);
+
+        // Auto Trigger Share
+        setTimeout(() => {
+          sendShareTargetPicker(flexMessage, decoded.a);
+        }, 800);
+
       } catch (e) {
+        console.error(e);
+        // Fallback to normal mode
         document.getElementById('loader').classList.add('hidden');
         document.getElementById('app-container').classList.remove('hidden');
+        Swal.fire('Error', 'ลิ้งค์ไม่ถูกต้อง หรือข้อมูลเสียหาย', 'error');
       }
     }
 
+    // --- Helper: Send Share Target Picker ---
     function sendShareTargetPicker(flexContent, altText) {
       if (!liff.isApiAvailable('shareTargetPicker')) {
-        Swal.fire('Error', 'ไม่รองรับ Share Target Picker', 'error');
+        Swal.fire('Error', 'อุปกรณ์นี้ไม่รองรับ Share Target Picker', 'error');
         return;
       }
-      liff.shareTargetPicker([{ type: "flex", altText: altText, contents: flexContent }])
-      .then((res) => {
+
+      liff.shareTargetPicker([
+        {
+          type: "flex",
+          altText: altText,
+          contents: flexContent
+        }
+      ])
+      .then(function (res) {
         if (res) {
-            // ปิดหน้าต่างทันทีถ้าส่งสำเร็จ
-            liff.closeWindow();
+          // ถ้าเป็นโหมดส่งต่อ ให้ปิดหน้าต่างเลยเมื่อส่งเสร็จ
+          if (isReshareMode) {
+              liff.closeWindow();
+          } else {
+              Swal.fire({
+                icon: 'success',
+                title: 'ส่งสำเร็จ!',
+                confirmButtonColor: '#06C755'
+              });
+          }
+        } else {
+           // User cancelled
+           if(isReshareMode) liff.closeWindow();
         }
       })
-      .catch((err) => Swal.fire('Failed', 'Error: ' + err, 'error'));
+      .catch(function (error) {
+        Swal.fire('Failed', 'เกิดข้อผิดพลาดในการส่ง: ' + error, 'error');
+      });
     }
 
+    // --- Helper: Create Flex Object ---
     function createMediaFlex(type, url, ratio, title) {
-      const heroType = (type === 'video') ? 'video' : 'image';
-      let heroBlock = {
-            "type": heroType,
+      const isVideo = type === 'video';
+      
+      if (!isVideo) {
+        return {
+          "type": "bubble",
+          "hero": {
+            "type": "image",
             "url": url,
             "size": "full",
             "aspectRatio": ratio,
-            "aspectMode": "cover"
-      };
-      
-      if(type === 'video') {
-          heroBlock.previewUrl = "https://via.placeholder.com/1024x576.png?text=Video+Preview";
-          heroBlock.altContent = { "type": "image", "size": "full", "aspectRatio": ratio, "aspectMode": "cover", "url": heroBlock.previewUrl };
-      } else {
-          heroBlock.action = { "type": "uri", "uri": url };
-      }
-
-      return {
-          "type": "bubble",
-          "hero": heroBlock,
+            "aspectMode": "cover",
+            "action": { "type": "uri", "uri": url }
+          },
           "body": {
-            "type": "box", "layout": "vertical",
-            "contents": [{ "type": "text", "text": title, "weight": "bold", "size": "md", "wrap": true }]
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              { "type": "text", "text": title, "weight": "bold", "size": "md", "wrap": true }
+            ]
           }
-      };
+        };
+      } else {
+        return {
+          "type": "bubble",
+          "hero": {
+            "type": "video",
+            "url": url,
+            "previewUrl": "https://via.placeholder.com/1024x576.png?text=Video+Preview", 
+            "altContent": {
+              "type": "image",
+              "size": "full",
+              "aspectRatio": ratio,
+              "aspectMode": "cover",
+              "url": "https://via.placeholder.com/1024x576.png?text=Video+Preview"
+            },
+            "aspectRatio": ratio
+          },
+          "body": {
+            "type": "box",
+            "layout": "vertical",
+            "contents": [
+              { "type": "text", "text": title, "weight": "bold", "size": "md", "wrap": true }
+            ]
+          }
+        };
+      }
     }
 
+    // --- Helper: Append "Viral" Button ---
     function appendReshareButton(flexJson, dataObj) {
-      // ใช้ Base URL ปัจจุบัน (GitHub Pages URL)
-      // ตัด Query Param เก่าออกก่อน
+      // ใช้ URL ปัจจุบัน (GitHub Pages) ตัด query param ออก
       const baseUrl = window.location.href.split('?')[0];
-      const encoded = btoa(JSON.stringify(dataObj));
+      
+      // ✅ แก้ไข: เพิ่มการ encode สำหรับภาษาไทย
+      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(dataObj))));
       const reshareUrl = `https://liff.line.me/${LIFF_ID}?data=${encoded}`;
 
       const footerButton = {
-        "type": "box", "layout": "vertical",
+        "type": "box",
+        "layout": "vertical",
         "contents": [
             { "type": "separator", "margin": "md" },
-            { "type": "button", "style": "primary", "color": "#06C755", "height": "sm", "margin": "md", 
-              "action": { "type": "uri", "label": "แชร์ต่อ (Share)", "uri": reshareUrl } }
+            {
+                "type": "button",
+                "style": "primary",
+                "color": "#06C755",
+                "height": "sm",
+                "margin": "md",
+                "action": {
+                    "type": "uri",
+                    "label": "แชร์ต่อ (Share)",
+                    "uri": reshareUrl
+                }
+            }
         ]
       };
 
-      if (!flexJson.footer) flexJson.footer = footerButton;
-      else if(flexJson.footer.layout === 'vertical') flexJson.footer.contents.push(footerButton.contents[1]);
-      
+      if (!flexJson.footer) {
+        flexJson.footer = footerButton;
+      } else {
+         if(flexJson.footer.layout === 'vertical') {
+             flexJson.footer.contents.push(footerButton.contents[1]); 
+         }
+      }
       return flexJson;
     }
+
   </script>
 </body>
 </html>
