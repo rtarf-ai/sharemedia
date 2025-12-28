@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Universal Flex Share</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap');
+    body { font-family: 'Kanit', sans-serif; }
+    
+    /* Glassmorphism Background */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    /* Hide scrollbar for clean UI */
+    ::-webkit-scrollbar { width: 0px; background: transparent; }
+  </style>
+</head>
+<body class="bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-700 min-h-screen p-4 flex items-center justify-center">
+
+  <div class="w-full max-w-md glass-card rounded-3xl shadow-2xl overflow-hidden relative">
+    
+    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-pink-500 to-yellow-500"></div>
+
+    <div class="pt-8 pb-4 px-6 text-center">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-indigo-100 text-indigo-600 mb-3 shadow-inner">
+        <i class="fa-solid fa-share-nodes text-2xl"></i>
+      </div>
+      <h1 class="text-2xl font-bold text-gray-800">Flex Share Hub</h1>
+      <p class="text-sm text-gray-500">สร้างและส่งต่อข้อมูลอย่างมืออาชีพ</p>
+    </div>
+
+    <div class="flex px-6 space-x-2 mb-6">
+      <button onclick="switchTab('image')" id="tab-image" class="flex-1 py-2 text-sm font-medium rounded-xl transition-all duration-300 bg-indigo-600 text-white shadow-lg transform scale-105">
+        <i class="fa-regular fa-image mr-1"></i> รูปภาพ
+      </button>
+      <button onclick="switchTab('video')" id="tab-video" class="flex-1 py-2 text-sm font-medium rounded-xl transition-all duration-300 bg-gray-100 text-gray-500 hover:bg-gray-200">
+        <i class="fa-solid fa-video mr-1"></i> วิดีโอ
+      </button>
+      <button onclick="switchTab('json')" id="tab-json" class="flex-1 py-2 text-sm font-medium rounded-xl transition-all duration-300 bg-gray-100 text-gray-500 hover:bg-gray-200">
+        <i class="fa-solid fa-code mr-1"></i> JSON
+      </button>
+    </div>
+
+    <div class="px-6 pb-8 space-y-4">
+      
+      <div id="options-panel" class="grid grid-cols-2 gap-3 p-3 bg-gray-50/50 rounded-2xl border border-gray-100">
+        <div>
+          <label class="text-xs font-semibold text-gray-500 ml-1">สัดส่วน (Ratio)</label>
+          <select id="input-ratio" class="w-full mt-1 bg-white border-0 rounded-lg text-sm p-2 shadow-sm focus:ring-2 focus:ring-indigo-300">
+            <option value="1:1">1:1 (จัตุรัส)</option>
+            <option value="1.91:1">1.91:1 (แนวนอน)</option>
+            <option value="16:9" selected>16:9 (วิดีโอ)</option>
+            <option value="9:16">9:16 (แนวตั้ง)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-gray-500 ml-1">ขนาด (Size)</label>
+          <select id="input-size" class="w-full mt-1 bg-white border-0 rounded-lg text-sm p-2 shadow-sm focus:ring-2 focus:ring-indigo-300">
+            <option value="mega">Mega (กลาง)</option>
+            <option value="giga" selected>Giga (ใหญ่)</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="panel-image" class="space-y-3 animate-fade-in">
+        <div>
+          <label class="text-xs font-bold text-gray-700 ml-1">ลิงก์รูปภาพ (URL)</label>
+          <input type="url" id="img-url" placeholder="https://..." class="w-full mt-1 bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-700 ml-1">ลิงก์ปลายทาง (เมื่อแตะรูป)</label>
+          <input type="url" id="img-action" placeholder="https://..." class="w-full mt-1 bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+        </div>
+      </div>
+
+      <div id="panel-video" class="space-y-3 hidden animate-fade-in">
+        <div>
+          <label class="text-xs font-bold text-gray-700 ml-1">ไฟล์วิดีโอ .mp4 (URL)</label>
+          <input type="url" id="vid-url" placeholder="https://.../video.mp4" class="w-full mt-1 bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+        </div>
+        <div>
+          <label class="text-xs font-bold text-gray-700 ml-1">รูปปกวิดีโอ (URL)</label>
+          <input type="url" id="vid-preview" placeholder="https://.../cover.jpg" class="w-full mt-1 bg-gray-50 border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all">
+        </div>
+      </div>
+
+      <div id="panel-json" class="hidden animate-fade-in">
+         <div>
+          <label class="text-xs font-bold text-gray-700 ml-1">Flex JSON Code</label>
+          <textarea id="json-code" rows="6" placeholder='{"type": "bubble", ...}' class="w-full mt-1 bg-gray-900 text-green-400 border border-gray-800 rounded-xl p-3 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-green-500 transition-all"></textarea>
+          <p class="text-[10px] text-gray-400 mt-1 text-right">ใส่เฉพาะ Object ภายใน contents</p>
+        </div>
+      </div>
+
+      <button onclick="executeShare()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 rounded-2xl shadow-xl transform active:scale-95 transition-all duration-200 flex items-center justify-center gap-2">
+        <span>ส่งข้อความ</span> <i class="fa-solid fa-paper-plane"></i>
+      </button>
+
+    </div>
+
+    <div id="loader" class="hidden absolute inset-0 bg-white/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center">
+      <div class="w-12 h-12 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin mb-3"></div>
+      <span class="text-sm font-semibold text-indigo-600 animate-pulse">กำลังทำงาน...</span>
+    </div>
+
+  </div>
+
+  <script>
+    // ================= CONFIGURATION =================
+    const LIFF_ID = "2008762104-z0nMh1Dx"; // ใส่ LIFF ID ที่นี่
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyLB1O-4xFEfbl5FJPgRUtL8W61fWWJJhqTGbmTM6PADHxu1Cd0pnoe9_im1pIz_vw/exec"; // (Optional) ใส่ URL ของ GAS Web App หากต้องการเก็บ Log
+    // =================================================
+
+    let currentMode = 'image';
+
+    // --- 1. Initialization ---
+    async function initLiff() {
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        
+        // ถ้าเปิดลิงก์แชร์ต่อมา (มี Query Params) ให้เติมข้อมูลอัตโนมัติ
+        const params = new URLSearchParams(window.location.search);
+        const mode = params.get('mode');
+        
+        if (mode) {
+          switchTab(mode);
+          if (mode === 'image') {
+            document.getElementById('img-url').value = params.get('url') || '';
+            document.getElementById('img-action').value = params.get('action') || '';
+            document.getElementById('input-ratio').value = params.get('ratio') || '16:9';
+          } else if (mode === 'video') {
+            document.getElementById('vid-url').value = params.get('url') || '';
+            document.getElementById('vid-preview').value = params.get('preview') || '';
+            document.getElementById('input-ratio').value = params.get('ratio') || '16:9';
+          }
+        }
+
+        if (!liff.isLoggedIn()) {
+          liff.login();
+        }
+      } catch (err) {
+        console.error("LIFF Init Error", err);
+        Swal.fire('Error', 'LIFF Initialization failed: ' + err.message, 'error');
+      }
+    }
+    
+    window.onload = initLiff;
+
+    // --- 2. UI Control ---
+    function switchTab(mode) {
+      currentMode = mode;
+      
+      // Reset Styles
+      ['image', 'video', 'json'].forEach(m => {
+        const btn = document.getElementById(`tab-${m}`);
+        const panel = document.getElementById(`panel-${m}`);
+        
+        if (m === mode) {
+          btn.className = "flex-1 py-2 text-sm font-medium rounded-xl transition-all duration-300 bg-indigo-600 text-white shadow-lg transform scale-105";
+          panel.classList.remove('hidden');
+        } else {
+          btn.className = "flex-1 py-2 text-sm font-medium rounded-xl transition-all duration-300 bg-gray-100 text-gray-500 hover:bg-gray-200";
+          panel.classList.add('hidden');
+        }
+      });
+
+      // Hide options panel for JSON mode
+      const optPanel = document.getElementById('options-panel');
+      if (mode === 'json') optPanel.classList.add('hidden');
+      else optPanel.classList.remove('hidden');
+    }
+
+    // --- 3. Share Logic ---
+    async function executeShare() {
+      if (!liff.isInClient() && !liff.isLoggedIn()) {
+        Swal.fire('แจ้งเตือน', 'กรุณาใช้งานผ่าน LINE Application', 'warning');
+        return;
+      }
+
+      toggleLoader(true);
+
+      try {
+        const flexMessage = buildFlexMessage();
+        
+        // ส่งข้อความผ่าน Share Target Picker
+        const result = await liff.shareTargetPicker([
+          {
+            type: "flex",
+            altText: "คุณได้รับข้อความใหม่ (Flex)",
+            contents: flexMessage
+          }
+        ]);
+
+        if (result) {
+           // (Optional) ส่ง Log กลับไปเก็บที่ GAS
+           if(GAS_API_URL) await saveLogToGas();
+
+           Swal.fire({
+             icon: 'success',
+             title: 'ส่งเรียบร้อย!',
+             timer: 2000,
+             showConfirmButton: false
+           });
+        } else {
+           console.log("User canceled share target picker");
+        }
+
+      } catch (error) {
+        Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
+      } finally {
+        toggleLoader(false);
+      }
+    }
+
+    // --- 4. Flex Builder (Recursive Sharing) ---
+    function buildFlexMessage() {
+      const ratio = document.getElementById('input-ratio').value;
+      const size = document.getElementById('input-size').value;
+      
+      // สร้างลิงก์สำหรับการแชร์ต่อ (Recursive)
+      // ใช้ liff.permanentLink.createUrl() หรือสร้างเองถ้ารู้ pattern
+      const baseUrl = "https://liff.line.me/" + LIFF_ID; 
+      
+      // Footer Button Helper
+      const createFooter = (queryParams) => ({
+        type: "box",
+        layout: "vertical",
+        contents: [
+            { type: "separator", margin: "sm" },
+            {
+                type: "button",
+                style: "link",
+                height: "sm",
+                action: {
+                    type: "uri",
+                    label: "📤 แชร์ต่อให้เพื่อน",
+                    uri: `${baseUrl}?${queryParams}`
+                }
+            }
+        ],
+        paddingAll: "sm"
+      });
+
+      if (currentMode === 'image') {
+        const url = document.getElementById('img-url').value;
+        const action = document.getElementById('img-action').value || url;
+        if (!url) throw new Error("กรุณาระบุ URL รูปภาพ");
+
+        const query = `mode=image&url=${encodeURIComponent(url)}&action=${encodeURIComponent(action)}&ratio=${ratio}`;
+
+        return {
+          type: "bubble",
+          size: size,
+          hero: {
+            type: "image",
+            url: url,
+            size: "full",
+            aspectRatio: ratio,
+            aspectMode: "cover",
+            action: { type: "uri", uri: action }
+          },
+          footer: createFooter(query)
+        };
+      } 
+      else if (currentMode === 'video') {
+        const url = document.getElementById('vid-url').value;
+        const preview = document.getElementById('vid-preview').value;
+        if (!url || !preview) throw new Error("ระบุ URL วิดีโอและรูปปกให้ครบถ้วน");
+
+        const query = `mode=video&url=${encodeURIComponent(url)}&preview=${encodeURIComponent(preview)}&ratio=${ratio}`;
+
+        return {
+          type: "bubble",
+          size: size,
+          hero: {
+            type: "video",
+            url: url,
+            previewUrl: preview,
+            altContent: {
+              type: "image",
+              size: "full",
+              aspectRatio: ratio,
+              aspectMode: "cover",
+              url: preview
+            },
+            aspectRatio: ratio
+          },
+          footer: createFooter(query)
+        };
+      }
+      else if (currentMode === 'json') {
+        const jsonStr = document.getElementById('json-code').value;
+        try {
+          return JSON.parse(jsonStr);
+        } catch (e) {
+          throw new Error("รูปแบบ JSON ไม่ถูกต้อง");
+        }
+      }
+    }
+
+    // --- 5. Helper Functions ---
+    function toggleLoader(show) {
+      const loader = document.getElementById('loader');
+      if (show) loader.classList.remove('hidden');
+      else loader.classList.add('hidden');
+    }
+
+    // (Optional) บันทึก Log
+    async function saveLogToGas() {
+      if(!GAS_API_URL) return;
+      
+      try {
+        const profile = await liff.getProfile();
+        const payload = {
+            userId: profile.userId,
+            displayName: profile.displayName,
+            type: currentMode,
+            timestamp: new Date()
+        };
+        
+        // ใช้ fetch ยิงไปหา GAS (Mode: no-cors เพื่อเลี่ยง CORS Error ในบางกรณี แต่จะไม่เห็น response)
+        // หรือตั้งค่า GAS ให้ return header Access-Control-Allow-Origin: *
+        await fetch(GAS_API_URL, {
+            method: 'POST',
+            mode: 'no-cors', 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+      } catch(e) {
+        console.warn("Log saving failed", e);
+      }
+    }
+  </script>
+</body>
+</html>
