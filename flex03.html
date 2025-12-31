@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advance Flex Share System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: linear-gradient(135deg, #00B900 0%, #1a1a1a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #333;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .type-selector .btn-check:checked + .btn-outline-success {
+            background-color: #06C755;
+            color: white;
+            border-color: #06C755;
+            box-shadow: 0 4px 15px rgba(6, 199, 85, 0.4);
+        }
+
+        .form-control:focus {
+            border-color: #06C755;
+            box-shadow: 0 0 0 0.25rem rgba(6, 199, 85, 0.25);
+        }
+
+        .preview-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px dashed #dee2e6;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .preview-box img, .preview-box video {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+
+        .loader-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            border-radius: 20px;
+        }
+
+        /* Toggle Switch Styling */
+        .form-check-input:checked {
+            background-color: #06C755;
+            border-color: #06C755;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="glass-card">
+        <div class="loader-overlay" id="loader">
+            <div class="spinner-border text-success" role="status" style="width: 3rem; height: 3rem;"></div>
+            <p class="mt-3 text-secondary fw-bold">กำลังประมวลผล...</p>
+        </div>
+
+        <h3 class="text-center mb-4 fw-bold"><i class="fab fa-line text-success"></i> Flex Share System</h3>
+        
+        <div id="mainForm">
+            <label class="form-label fw-bold">เลือกประเภทสื่อ</label>
+            <div class="btn-group w-100 mb-4 type-selector" role="group">
+                <input type="radio" class="btn-check" name="mediaType" id="typeImg" value="image" checked onchange="toggleForm()">
+                <label class="btn btn-outline-success" for="typeImg"><i class="fas fa-image"></i> รูปภาพ</label>
+
+                <input type="radio" class="btn-check" name="mediaType" id="typeVideo" value="video" onchange="toggleForm()">
+                <label class="btn btn-outline-success" for="typeVideo"><i class="fas fa-video"></i> วิดีโอ</label>
+
+                <input type="radio" class="btn-check" name="mediaType" id="typeJson" value="json" onchange="toggleForm()">
+                <label class="btn btn-outline-success" for="typeJson"><i class="fas fa-code"></i> JSON</label>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" id="urlLabel">URL ของรูปภาพ</label>
+                <input type="text" class="form-control" id="mediaUrl" placeholder="https://example.com/image.jpg">
+                <textarea class="form-control d-none" id="jsonInput" rows="5" placeholder='Paste your Flex Message JSON here'></textarea>
+            </div>
+
+            <div class="mb-3 d-none" id="videoPreviewGroup">
+                <label class="form-label">URL รูปปกวิดีโอ (Preview Image)</label>
+                <input type="text" class="form-control" id="videoPreviewUrl" placeholder="https://example.com/cover.jpg">
+            </div>
+
+            <div class="mb-3" id="ratioGroup">
+                <label class="form-label">อัตราส่วน (Aspect Ratio)</label>
+                <select class="form-select" id="aspectRatio">
+                    <option value="1:1">1:1 (Square)</option>
+                    <option value="1.51:1">1.51:1 (Standard)</option>
+                    <option value="1.91:1">1.91:1 (Wide)</option>
+                    <option value="4:3">4:3</option>
+                    <option value="16:9">16:9</option>
+                    <option value="20:13">20:13</option>
+                    <option value="9:16">9:16 (Vertical)</option>
+                </select>
+            </div>
+
+            <div class="card bg-light border-0 mb-4">
+                <div class="card-body">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="allowShare" checked>
+                        <label class="form-check-label fw-bold" for="allowShare">อนุญาตให้แชร์ต่อ (Viral Loop)</label>
+                    </div>
+                    <small class="text-muted" style="font-size: 0.8rem;">หากเปิด ผู้รับจะเห็นปุ่ม "ส่งต่อให้เพื่อน" และสามารถส่งต่อได้ทันที</small>
+                </div>
+            </div>
+
+            <div class="preview-box mb-4" id="previewArea">
+                <span class="text-muted">ตัวอย่างจะปรากฏที่นี่</span>
+            </div>
+
+            <button class="btn btn-success w-100 py-3 fw-bold rounded-pill shadow-sm" onclick="handleSend()">
+                <i class="fas fa-paper-plane me-2"></i> เลือกกลุ่มและส่งข้อมูล
+            </button>
+        </div>
+
+        <div id="reshareMode" class="d-none text-center">
+            <div class="mb-4">
+                <img id="resharePreview" src="" class="img-fluid rounded shadow-sm mb-3" style="max-height: 200px;">
+                <h5 class="fw-bold">พร้อมส่งต่อข้อมูล!</h5>
+                <p class="text-muted">คุณสามารถส่งต่อเนื้อหานี้ไปยังกลุ่มอื่นได้ทันที</p>
+            </div>
+            <button class="btn btn-success w-100 py-3 fw-bold rounded-pill shadow-sm" onclick="executeShare()">
+                <i class="fas fa-share-alt me-2"></i> ส่งต่อทันที
+            </button>
+        </div>
+
+    </div>
+
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // --- CONFIGURATION ---
+        const LIFF_ID = "2008762104-KqOds1Bq"; // ใส่ LIFF ID ของคุณ
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwsjHmpgkwV6E4ZhqUeQjqwKG7FSJCwJ-etV0HVthQfJcMG99sVfUBL-QSKU7nbIwCh/exec"; // ใส่ Web App URL จาก Apps Script
+        
+        let userProfile = null;
+        let urlParams = new URLSearchParams(window.location.search);
+        let isReshareMode = false;
+        let reshareData = {};
+
+        // --- INITIALIZATION ---
+        async function main() {
+            try {
+                await liff.init({ liffId: LIFF_ID });
+                if (!liff.isLoggedIn()) {
+                    liff.login();
+                    return;
+                }
+                userProfile = await liff.getProfile();
+                
+                // ตรวจสอบว่าเป็นการกดมาจากปุ่ม "แชร์ต่อ" หรือไม่
+                checkReshareParams();
+                
+            } catch (err) {
+                console.error(err);
+                Swal.fire("Error", "LIFF Init failed", "error");
+            }
+        }
+        main();
+
+        // --- LOGIC: UI CONTROL ---
+        function toggleForm() {
+            const type = document.querySelector('input[name="mediaType"]:checked').value;
+            const urlLabel = document.getElementById('urlLabel');
+            const mediaInput = document.getElementById('mediaUrl');
+            const jsonInput = document.getElementById('jsonInput');
+            const ratioGroup = document.getElementById('ratioGroup');
+            const videoPreviewGroup = document.getElementById('videoPreviewGroup');
+
+            if (type === 'json') {
+                mediaInput.classList.add('d-none');
+                jsonInput.classList.remove('d-none');
+                ratioGroup.classList.add('d-none');
+                videoPreviewGroup.classList.add('d-none');
+                urlLabel.innerText = "JSON Code";
+            } else if (type === 'video') {
+                mediaInput.classList.remove('d-none');
+                jsonInput.classList.add('d-none');
+                ratioGroup.classList.remove('d-none');
+                videoPreviewGroup.classList.remove('d-none');
+                urlLabel.innerText = "URL วิดีโอ (.mp4)";
+            } else { // image
+                mediaInput.classList.remove('d-none');
+                jsonInput.classList.add('d-none');
+                ratioGroup.classList.remove('d-none');
+                videoPreviewGroup.classList.add('d-none');
+                urlLabel.innerText = "URL รูปภาพ";
+            }
+            updatePreview();
+        }
+
+        document.getElementById('mediaUrl').addEventListener('input', updatePreview);
+        document.getElementById('videoPreviewUrl').addEventListener('input', updatePreview);
+        
+        function updatePreview() {
+            const type = document.querySelector('input[name="mediaType"]:checked').value;
+            const previewBox = document.getElementById('previewArea');
+            const url = document.getElementById('mediaUrl').value;
+            
+            previewBox.innerHTML = '';
+
+            if (!url) {
+                previewBox.innerHTML = '<span class="text-muted">Waiting for input...</span>';
+                return;
+            }
+
+            if (type === 'image') {
+                previewBox.innerHTML = `<img src="${url}" alt="Preview">`;
+            } else if (type === 'video') {
+                previewBox.innerHTML = `<video controls src="${url}" style="max-height: 150px;"></video>`;
+            } else {
+                previewBox.innerHTML = '<span class="text-success"><i class="fas fa-check-circle"></i> JSON Ready</span>';
+            }
+        }
+
+        // --- LOGIC: RESHARE MECHANISM ---
+        function checkReshareParams() {
+            const action = urlParams.get('action');
+            if (action === 'reshare') {
+                isReshareMode = true;
+                document.getElementById('mainForm').classList.add('d-none');
+                document.getElementById('reshareMode').classList.remove('d-none');
+                document.querySelector('.glass-card h3').innerText = "ส่งต่อข้อมูล (Forwarding)";
+
+                // Decode Data
+                reshareData = {
+                    type: urlParams.get('type'),
+                    content: decodeURIComponent(urlParams.get('content')),
+                    ratio: urlParams.get('ratio'),
+                    preview: decodeURIComponent(urlParams.get('preview') || '')
+                };
+
+                // Show basic preview in reshare mode
+                const previewImg = document.getElementById('resharePreview');
+                if(reshareData.type === 'image') previewImg.src = reshareData.content;
+                else if (reshareData.type === 'video') previewImg.src = reshareData.preview;
+                else previewImg.src = "https://via.placeholder.com/300x150?text=JSON+Content";
+            }
+        }
+
+        // --- LOGIC: SENDING ---
+        async function handleSend() {
+            // 1. Get Values
+            const type = document.querySelector('input[name="mediaType"]:checked').value;
+            const allowShare = document.getElementById('allowShare').checked;
+            let content = "";
+            let previewUrl = "";
+            let aspectRatio = document.getElementById('aspectRatio').value;
+
+            if (type === 'json') {
+                content = document.getElementById('jsonInput').value;
+                try { JSON.parse(content); } catch(e) { 
+                    Swal.fire("Error", "Invalid JSON format", "error"); return; 
+                }
+            } else {
+                content = document.getElementById('mediaUrl').value;
+                if (!content) { Swal.fire("แจ้งเตือน", "กรุณาระบุ URL", "warning"); return; }
+                if (type === 'video') {
+                    previewUrl = document.getElementById('videoPreviewUrl').value;
+                    if(!previewUrl) { Swal.fire("แจ้งเตือน", "กรุณาระบุรูปปกวิดีโอ", "warning"); return; }
+                }
+            }
+
+            // 2. Prepare Data for Logic
+            const payload = { type, content, aspectRatio, previewUrl, allowShare };
+            await processAndShare(payload);
+        }
+
+        async function executeShare() {
+            // Triggered from Reshare Mode
+            // In reshare mode, allowShare is forced to true to keep the chain going
+            const payload = { 
+                type: reshareData.type, 
+                content: reshareData.content, 
+                aspectRatio: reshareData.ratio, 
+                previewUrl: reshareData.preview, 
+                allowShare: true 
+            };
+            await processAndShare(payload);
+        }
+
+        async function processAndShare(data) {
+            document.getElementById('loader').style.display = 'flex';
+
+            // 3. Construct Flex Message
+            let flexMessage = null;
+
+            // Generate Reshare URL (Self-Link)
+            // Note: We use encodeURIComponent to safely pass URLs
+            let selfUrl = `https://liff.line.me/${LIFF_ID}?action=reshare&type=${data.type}&ratio=${data.aspectRatio}&content=${encodeURIComponent(data.content)}`;
+            if(data.previewUrl) selfUrl += `&preview=${encodeURIComponent(data.previewUrl)}`;
+
+            const shareButton = {
+                type: "button",
+                style: "primary",
+                color: "#06C755",
+                action: {
+                    type: "uri",
+                    label: "♻️ ส่งต่อให้เพื่อน (Share)",
+                    uri: selfUrl
+                }
+            };
+
+            if (data.type === 'json') {
+                let jsonObj = JSON.parse(data.content);
+                // Inject Share Button if allowed and if structure supports it
+                if (data.allowShare) {
+                     // Advanced: Trying to inject into existing JSON is risky, 
+                     // so we wrap it in a carousel or append to footer if possible.
+                     // For simplicity in this demo: We assume the user's JSON is the main bubble.
+                     // We can't easily inject into raw JSON without knowing structure.
+                     // *Backup Strategy:* Send 2 bubbles.
+                     flexMessage = jsonObj;
+                } else {
+                    flexMessage = jsonObj;
+                }
+            } else {
+                // Image or Video Construction
+                let heroComponent = {};
+                
+                if (data.type === 'image') {
+                    heroComponent = {
+                        type: "image",
+                        url: data.content,
+                        size: "full",
+                        aspectRatio: data.aspectRatio,
+                        aspectMode: "cover",
+                        action: { type: "uri", uri: data.content }
+                    };
+                } else if (data.type === 'video') {
+                    heroComponent = {
+                        type: "video",
+                        url: data.content,
+                        previewUrl: data.previewUrl,
+                        aspectRatio: data.aspectRatio,
+                        altContent: {
+                            type: "image",
+                            url: data.previewUrl,
+                            size: "full",
+                            aspectRatio: data.aspectRatio,
+                            aspectMode: "cover"
+                        }
+                    };
+                }
+
+                let bubbleObj = {
+                    type: "bubble",
+                    hero: heroComponent
+                };
+
+                // Add Footer Button if Allow Share
+                if (data.allowShare) {
+                    bubbleObj.footer = {
+                        type: "box",
+                        layout: "vertical",
+                        contents: [shareButton]
+                    };
+                }
+
+                flexMessage = {
+                    type: "flex",
+                    altText: "คุณได้รับข้อความใหม่ (Media Share)",
+                    contents: bubbleObj
+                };
+            }
+
+            // 4. Send Log to Backend (Optional but requested)
+            if (GOOGLE_SCRIPT_URL && GOOGLE_SCRIPT_URL !== "YOUR_GAS_URL_HERE") {
+                fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: userProfile.userId,
+                        displayName: userProfile.displayName,
+                        type: data.type,
+                        content: data.content,
+                        allowShare: data.allowShare
+                    })
+                });
+            }
+
+            // 5. Share Target Picker
+            if (liff.isApiAvailable('shareTargetPicker')) {
+                try {
+                    const res = await liff.shareTargetPicker([flexMessage]);
+                    document.getElementById('loader').style.display = 'none';
+                    
+                    if (res) {
+                        Swal.fire({
+                            title: 'ส่งสำเร็จ!',
+                            text: 'ข้อความถูกส่งไปยังกลุ่มที่เลือกแล้ว',
+                            icon: 'success',
+                            confirmButtonColor: '#06C755'
+                        }).then(() => {
+                            if(isReshareMode) liff.closeWindow();
+                        });
+                    } else {
+                        // User canceled
+                        console.log("User canceled share target picker");
+                    }
+                } catch (error) {
+                    document.getElementById('loader').style.display = 'none';
+                    Swal.fire("Error", "เกิดข้อผิดพลาดในการส่ง: " + error.message, "error");
+                }
+            } else {
+                document.getElementById('loader').style.display = 'none';
+                Swal.fire("Error", "อุปกรณ์นี้ไม่รองรับ ShareTargetPicker", "error");
+            }
+        }
+    </script>
+</body>
+</html>
